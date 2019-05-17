@@ -10,16 +10,22 @@ import java.net.SocketTimeoutException;
 
 import javax.swing.JTextArea;
 
-import org.json.simple.JSONArray;
-import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
-import org.json.simple.parser.ParseException;
-
+import gdbghidra.events.BreakpointEvent;
+import gdbghidra.events.CursorEvent;
+import gdbghidra.events.EventParser;
+import gdbghidra.events.HelloEvent;
+import gdbghidra.events.ParseException;
+import gdbghidra.events.RegisterEvent;
+import ghidra.app.cmd.register.SetRegisterCmd;
 import ghidra.app.script.GhidraScript;
 import ghidra.app.services.GoToService;
+import ghidra.framework.cmd.CompoundCmd;
 import ghidra.framework.plugintool.PluginTool;
 import ghidra.program.model.address.Address;
+import ghidra.program.model.lang.Register;
+import ghidra.program.model.listing.Instruction;
 import ghidra.program.model.listing.Program;
+import ghidra.program.util.OperandFieldLocation;
 import ghidra.program.util.ProgramLocation;
 
 
@@ -46,14 +52,14 @@ public class GDBReceiver extends GhidraScript implements Runnable{
 			while(!this.stop) {
 				handleConnection(socket.accept());
 			}
-		} catch (IOException e) {
+		} catch (IOException|gdbghidra.events.ParseException e) {
 			e.printStackTrace();
 			this.stop = true;
 			return;
 		}
 	}
 	
-	private void handleConnection(Socket sock) throws IOException {
+	private void handleConnection(Socket sock) throws IOException, gdbghidra.events.ParseException {
 		String msgBuffer;
 		try (
 				var is = sock.getInputStream();
@@ -71,36 +77,46 @@ public class GDBReceiver extends GhidraScript implements Runnable{
 				}
 				textArea.append("read " + String.valueOf(msgBuffer.length()) + " bytes: '" + msgBuffer + "'\n");
 
-				var jp = new JSONParser();
-				var r = (JSONObject)jp.parse(msgBuffer);
-				if(r != null && r.containsKey("type") && r.get("type").equals("CURSOR")) {
-					if(!r.containsKey("data")) { continue; }
-					
-					var da = (JSONArray)r.get("data");
-					
-					if(da.size() == 0) { continue; }
-					
-					var d = (JSONObject)da.get(0);
-					
-					if(!d.containsKey("CURSOR")) { continue; }
-					
-					var ca = (JSONObject)d.get("CURSOR");
-					
-					if(!ca.containsKey("ADDRESS")) { continue; }
-					
-					var s = (String)ca.get("ADDRESS");
-					textArea.append("[CURSOR] set to address: " + s + "\n");
-					tool.getService(GoToService.class).goTo(currentProgram.getImageBase().add(Long.decode(s)));
+				var tmpEvent = EventParser.fromJsonString(msgBuffer);
+				switch(tmpEvent.getType()) {
+					case HELLO:
+						var hello = (HelloEvent)tmpEvent;
+						break;
+					case CURSOR:
+						var cursor = (CursorEvent)tmpEvent;
+						var newAddress = currentProgram.getImageBase().add(cursor.getOffset());
+						textArea.append("[CURSOR] set to address: " + newAddress + "\n");
+						tool.getService(GoToService.class).goTo(newAddress);
+						break;
+					case REGISTER:
+						var registerEvent = (RegisterEvent)tmpEvent;
+						var register = currentProgram.getRegister(registerEvent.getName());
+						if(register == null) {
+							textArea.append("[ERROR] Unknown register: "+registerEvent.getName()+"\n");
+							break;
+						}
+						var address = currentLocation.getAddress();
+						System.out.println(address);
+						var cmd = new CompoundCmd("Set Register Values");
+						
+						var regCmd = new SetRegisterCmd(
+								register, 
+								address, 
+								address,
+								registerEvent.getValue());
+						cmd.add(regCmd);
+						tool.execute(cmd, currentProgram);
+						break;
+					case BREAKPOINT:
+						var breakpoint = (BreakpointEvent)tmpEvent;
+						break;
 				}
 			}
 		} catch (SocketTimeoutException e) {
 			return;
-		} catch (ParseException e) {
-			e.printStackTrace();
-			return;
 		}
 	}
-
+	
 	public void setPort(int port) {
 		this.port = port;
 	}

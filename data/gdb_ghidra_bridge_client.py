@@ -25,12 +25,12 @@ class GhidraBridge(gdb.Command):
         self._ghidra_port = GHIDRA_BRIDGE_PORT
         self._ghidra_answer_port = GHIDRA_ANSWER_PORT
         self._init_bps = []
-        self._img_base = None
         self._img_reloc = False
         self._socket = None
         self._connected = False
         self._arch = None
         self._endian = None
+        self._regs = {}
 
     def connect(self):
         print("connect")
@@ -53,17 +53,9 @@ class GhidraBridge(gdb.Command):
         # in case we want to ignore all breakpoints that were set before the ghidrabridge was launched.
         if isinstance(event, gdb.BreakpointEvent) and event.breakpoint in self._init_bps:
             return
-
-        if self._img_base == None and self._img_reloc == True:
-            self.get_relocation()
-
-        pc = self.get_pc()
-
-        if self._img_reloc:
-            print("adjusted pc from 0x%x to 0x%x (base: 0x%x)\n" %(pc, pc-self._img_reloc, self._img_base))
-            pc = pc - self._img_base
             
-        self.update_cursor_to(pc)
+        self.update_cursor_to(gdb.selected_frame().pc(), self.get_relocation())
+        self._get_register_values()
 
     def send_hello(self):
         message = json.dumps({
@@ -76,10 +68,10 @@ class GhidraBridge(gdb.Command):
             })
         self.tell_ghidra(message)
 
-    def update_cursor_to(self, address):
+    def update_cursor_to(self, address, relocate):
         message = json.dumps({
             "type":"CURSOR",
-            "data":[ {"CURSOR":{"ADDRESS":hex(address) }} ],
+            "data":[ {"address":hex(gdb.selected_frame().pc()), "relocate":relocate } ],
             })
         self.tell_ghidra(message)
 
@@ -105,18 +97,37 @@ class GhidraBridge(gdb.Command):
         
         result = val[s_text + len(extract_begin):e_text]
         print("found %s '%s'" % (name, result))
-        return result
+        return result.strip()
+
+    def update_register(self, address, register, value):
+        message = json.dumps({
+            "type":"REGISTER",
+            "data":[{"address":address,"name":register,"value":value}]
+            })
+        self.tell_ghidra(message)
+
+    def _get_register_values(self):
+        print("_get_register_values")
+        address = hex(gdb.selected_frame().pc())
+        val = gdb.execute("i r", to_string=True)
+        for reg, value in map(lambda x: x.split()[:2], val.split("\n")[:-1]):
+            if reg in self._regs and self._regs[reg] == value: continue 
+            
+            self._regs[reg] = value
+            
+            self.update_register(address, reg, value)
 
 
     def get_relocation(self):
-        reloc = self._query_gdb('info proc stat', 'relocation', 'Start of text: ', 'End of text: ')
-        if reloc == 'unknown':
-            self._img_reloc = False
+        print("get_relocation")
+        if self._img_reloc:
+            return self._img_reloc
         
-        self._img_base = int(reloc, 16)
-        print("using 0x%x as text relocation\n" %(self._img_base))
+        self._img_reloc = self._query_gdb('info proc stat', 'relocation', 'Start of text: ', 'End of text: ')
+        
+        print("using %s as text relocation\n" %(self._img_reloc))
 
-        return rel
+        return self._img_reloc
 
     def get_pc(self):
             val = gdb.selected_frame().pc()
@@ -131,12 +142,11 @@ class GhidraBridge(gdb.Command):
             self.connect()
         
         self._socket.send(bytes(message + "\n", 'UTF-8'))
-        
 
     def invoke(self, arg, from_tty):
             argv = arg.split(' ')
             if len(argv) < 1:
-                    print("ghidrabridge <ip:port> [reloc_text]")
+                    print("ghidrabridge <ip:port>")
                     return
 
             target = argv[0].split(':')
@@ -150,9 +160,6 @@ class GhidraBridge(gdb.Command):
             print("ghidrabridge: using ip: %s port: %d\n" %(self._ghidra_ip, self._ghidra_port))
 
             self.connect()
-
-            if len(argv) >= 2 and argv[1] == 'reloc_text':
-                    self._img_reloc = True
 
             if INIT_BP_WORKAROUND:
                     self._init_bps = gdb.breakpoints()
