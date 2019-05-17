@@ -1,0 +1,13 @@
+System.out.println("test");
+
+//var jp = new org.json.simple.parser.JSONParser();//var r = jp.parse("{\"type\":\"CURSOR\",\"data\":[{\"ADDRESS\":\"0x23\"}]}");
+//System.out.println(r);
+//System.out.println(((org.json.simple.JSONObject)r).get("type"));
+//var da = (org.json.simple.JSONArray)((org.json.simple.JSONObject)r).get("data");
+//var d = (org.json.simple.JSONObject)da.get(0);
+//System.out.println(d.get("ADDRESS"));
+Syntax error, insert ";" to complete BlockStatementsvar l = new java.util.ArrayList<generic.json.JSONToken>();var p = new generic.json.JSONParser();
+p.parse("{\"type\":\"CURSOR\",\"data\":[{\"ADDRESS\":\"0x23\"}]}".toCharArray(), l);
+System.out.println(l);
+System.out.println(l.get(1).start);
+System.out.println(l.get(1).size);
