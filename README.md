@@ -32,6 +32,14 @@ Next, configure the gdb stub to connect to gdbghidras's port (either command lin
 ghidrabridge 10.0.10.10:2305
 ```
 
+Development
+===========
+If you want to build gdbghidra from source using GHIDRA's eclipse environment make sure to add `json-simple-1.1.1.jar` to the classpath as follows:
+
+* Click the `Run` Menu and select `Run Configurations`.
+* Navigate to `Ghidra/GDBGhidra` and select `Classpath`.
+* Navigate down the list to `User Entries`, select `User Entries` and click on `ADD JARS...`.
+* Select `lib/json-simple-1.1.1.jar`
 
 Notes
 =====
