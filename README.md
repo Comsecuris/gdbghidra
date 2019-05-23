@@ -9,6 +9,8 @@ gdbghidra consists of the following two parts:
 * dist/ghidra_9.0.1_PUBLIC_20190516_GDBGHIDRA.zip
 * data/gdb\_ghidra\_bridge\_client.py : gdb python script
 
+![data/gdbghidra](data/gdbghidra.gif)
+
 Installation
 ============
 Make a change the ~/.gdbinit configuration file to include the plugin:
