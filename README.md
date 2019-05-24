@@ -18,6 +18,7 @@ Features
 * Automatically set register values within GHIDRA for better decompilation
 * GHIDRA register window
 * Set/Toggle/Delete breakpoints from GHIDRA
+* Automatic relocation
 
 Installation
 ============
