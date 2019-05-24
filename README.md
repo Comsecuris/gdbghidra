@@ -11,6 +11,14 @@ gdbghidra consists of the following two parts:
 
 ![data/gdbghidra](data/gdbghidra.gif)
 
+Features
+========
+* Sync/colorize cursor inside GHIDRA to PC of GDB session
+* Sync stack to GHIDRA on GDB break
+* Set registers within GHIDRA for better decompilation
+* GHIDRA register window
+* Set/Toggle/Delete breakpoints from GHIDRA
+
 Installation
 ============
 Make a change the ~/.gdbinit configuration file to include the plugin:
@@ -42,6 +50,8 @@ If you want to build gdbghidra from source using GHIDRA's eclipse environment ma
 * Navigate to `Ghidra/GDBGhidra` and select `Classpath`.
 * Navigate down the list to `User Entries`, select `User Entries` and click on `ADD JARS...`.
 * Select `lib/json-simple-1.1.1.jar`
+
+Between GHIDRA and GDB a simple JSON message format is spoken which could also be used to connect other tools/debuggers to this GHIDRA plugin.
 
 Notes
 =====
