@@ -11,3 +11,8 @@ p.parse("{\"type\":\"CURSOR\",\"data\":[{\"ADDRESS\":\"0x23\"}]}".toCharArray(),
 System.out.println(l);
 System.out.println(l.get(1).start);
 System.out.println(l.get(1).size);
+
+
+System.out.println(Long.decode("0x555555554000"));
+
+System.out.println("0x555555554000".substring(2));

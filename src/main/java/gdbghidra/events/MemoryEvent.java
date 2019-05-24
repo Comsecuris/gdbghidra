@@ -101,6 +101,7 @@ public class MemoryEvent implements Event {
 		try {
 			var tx = currentProgram.startTransaction("adding memory");
 			
+			
 			var r = mbu.createInitializedBlock(
 					memEvent.getName(), 
 					memEvent.getAddress(currentProgram), 
@@ -113,7 +114,12 @@ public class MemoryEvent implements Event {
 					memEvent.getExecutePermission(), 
 					TaskMonitor.DUMMY);
 			if(r == null) {
-				System.err.println("[GDBGhidra] could not write new memory block");
+				var msg = mbu.getMessages();
+				if(msg.contains("Overwrote memory")) {
+					System.out.println("[GDBGhidra] "+ mbu.getMessages());
+				} else {
+					System.err.println("[GDBGhidra] could not write new memory block: "+ mbu.getMessages());
+				}
 			} else {
 				System.out.println("[GDBGhidra]" + r.toString());
 			}

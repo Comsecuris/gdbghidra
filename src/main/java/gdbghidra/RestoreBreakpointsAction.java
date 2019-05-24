@@ -26,9 +26,6 @@ package gdbghidra;
 import docking.ActionContext;
 import docking.action.DockingAction;
 import docking.action.MenuData;
-import ghidra.app.context.ListingActionContext;
-import ghidra.program.model.address.Address;
-import ghidra.program.util.MarkerLocation;
 
 class RestoreBreakpointsAction extends DockingAction {
 	private GDBReceiver gdbReceiver;
