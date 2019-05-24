@@ -15,7 +15,7 @@ Features
 ========
 * Sync/colorize cursor inside GHIDRA to PC of GDB session
 * Sync stack to GHIDRA on GDB break
-* Set registers within GHIDRA for better decompilation
+* Automatically set register values within GHIDRA for better decompilation
 * GHIDRA register window
 * Set/Toggle/Delete breakpoints from GHIDRA
 
