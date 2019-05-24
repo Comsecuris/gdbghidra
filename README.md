@@ -21,7 +21,7 @@ source ~/gdb_ghidra_bridge_client.py
 To install the plugin in GHIDRA follow these steps:
 
 * Open GHIDRA and select `File/Install Extensions`. 
-* Press the green `+` button and select `dist/ghidra_9.0.1_PUBLIC_20190516_GDBGHIDRA.zip`. 
+* Press the green `+` button and select `dist/ghidra_9.0.1_PUBLIC_*_GDBGHIDRA.zip`. 
 * Make sure the Plugin has a tick in the box left.
 * Start GHIDRA CodeBrowser.
 * Open `File/Configure` and press the adapter icon in above left oft 'Ghidra Core'.
