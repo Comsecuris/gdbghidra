@@ -3,7 +3,7 @@
 The purpose of gdbghidra is to provide means during interactive debug sessions in
 gdb to quickly follow the flow in GHIDRA; similar to our [gdbida](https://github.com/Comsecuris/gdbida) plugin for IDA Pro. gdbghidra is not meant to be a full debugger. Instead, it merely serves as a small helper tool to assist during interactive debug 
 sessions that make use of a mixture of tools. It provides simple means to quickly follow along a gdb debug
-session in GHIDRA.
+session in GHIDRA. Also it does not need any dependencies on the Python side.
 
 gdbghidra consists of the following two parts:
 * dist/ghidra_9.0.1_PUBLIC_*_GDBGHIDRA.zip
