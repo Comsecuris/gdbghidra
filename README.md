@@ -6,7 +6,7 @@ sessions that make use of a mixture of tools. It provides simple means to quickl
 session in GHIDRA.
 
 gdbghidra consists of the following two parts:
-* dist/ghidra_9.0.1_PUBLIC_20190516_GDBGHIDRA.zip
+* dist/ghidra_9.0.1_PUBLIC_*_GDBGHIDRA.zip
 * data/gdb\_ghidra\_bridge\_client.py : gdb python script
 
 ![data/gdbghidra](data/gdbghidra.gif)
