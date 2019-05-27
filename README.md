@@ -43,6 +43,14 @@ Next, configure the gdb stub to connect to gdbghidras's port (either command lin
 ghidrabridge 10.0.10.10:2305
 ```
 
+Building
+========
+To build this plugin using gradle run the following command inside gdbghidra directory
+```bash
+gradle -PGHIDRA_INSTALL_DIR=<PATH_TO_GHIDRA_FOLDER>
+```
+This produces a fresh extension zip within the `gdbghidra/dist` folder. 
+
 Development
 ===========
 If you want to build gdbghidra from source using GHIDRA's eclipse environment make sure to add `json-simple-1.1.1.jar` to the classpath as follows:
@@ -53,6 +61,7 @@ If you want to build gdbghidra from source using GHIDRA's eclipse environment ma
 * Select `lib/json-simple-1.1.1.jar`
 
 Between GHIDRA and GDB a simple JSON message format is spoken which could also be used to connect other tools/debuggers to this GHIDRA plugin.
+
 
 Notes
 =====
