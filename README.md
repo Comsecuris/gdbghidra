@@ -3,13 +3,22 @@
 The purpose of gdbghidra is to provide means during interactive debug sessions in
 gdb to quickly follow the flow in GHIDRA; similar to our [gdbida](https://github.com/Comsecuris/gdbida) plugin for IDA Pro. gdbghidra is not meant to be a full debugger. Instead, it merely serves as a small helper tool to assist during interactive debug 
 sessions that make use of a mixture of tools. It provides simple means to quickly follow along a gdb debug
-session in GHIDRA.
+session in GHIDRA. Also it does not need any dependencies on the Python side.
 
 gdbghidra consists of the following two parts:
-* dist/ghidra_9.0.1_PUBLIC_20190516_GDBGHIDRA.zip
+* dist/ghidra_9.0.1_PUBLIC_*_GDBGHIDRA.zip
 * data/gdb\_ghidra\_bridge\_client.py : gdb python script
 
 ![data/gdbghidra](data/gdbghidra.gif)
+
+Features
+========
+* Sync/colorize cursor inside GHIDRA to PC of GDB session
+* Sync stack to GHIDRA on GDB break
+* Automatically set register values within GHIDRA for better decompilation
+* GHIDRA register window
+* Set/Toggle/Delete breakpoints from GHIDRA
+* Automatic relocation
 
 Installation
 ============
@@ -21,7 +30,7 @@ source ~/gdb_ghidra_bridge_client.py
 To install the plugin in GHIDRA follow these steps:
 
 * Open GHIDRA and select `File/Install Extensions`. 
-* Press the green `+` button and select `dist/ghidra_9.0.1_PUBLIC_20190516_GDBGHIDRA.zip`. 
+* Press the green `+` button and select `dist/ghidra_9.0.1_PUBLIC_*_GDBGHIDRA.zip`. 
 * Make sure the Plugin has a tick in the box left.
 * Start GHIDRA CodeBrowser.
 * Open `File/Configure` and press the adapter icon in above left oft 'Ghidra Core'.
@@ -42,6 +51,8 @@ If you want to build gdbghidra from source using GHIDRA's eclipse environment ma
 * Navigate to `Ghidra/GDBGhidra` and select `Classpath`.
 * Navigate down the list to `User Entries`, select `User Entries` and click on `ADD JARS...`.
 * Select `lib/json-simple-1.1.1.jar`
+
+Between GHIDRA and GDB a simple JSON message format is spoken which could also be used to connect other tools/debuggers to this GHIDRA plugin.
 
 Notes
 =====
