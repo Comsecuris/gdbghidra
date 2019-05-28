@@ -209,7 +209,8 @@ class GhidraMessages:
     
     @staticmethod
     def memory(address, mapping, data, read, write, execute):
-        msg ={
+        if mapping and data:
+            msg ={
                 "type":"MEMORY",
                 "data":[{
                     "address":mapping["begin"], 
@@ -221,7 +222,8 @@ class GhidraMessages:
                     "execute":str(execute)
                 }]
             }
-        return GhidraMessages.encode(msg)    
+            return GhidraMessages.encode(msg)    
+        
     
     
             
@@ -249,7 +251,7 @@ class GhidraBridgeCommand(gdb.Command):
     def hdl_stop_event(self, event):
         self._ghidra_bridge.send_message( GhidraMessages.update_cursor_to( GDBUtils.get_instruction_pointer(), GDBUtils.get_relocation()) )
         self._update_register_values()
-        self._ghidra_bridge.send_message( GhidraMessages.memory( GDBUtils.get_instruction_pointer(), GDBUtils.get_mapping("[stack]"), GDBUtils.get_encoded_stack(), True, True, False ))       
+        self._ghidra_bridge.send_message( GhidraMessages.memory( GDBUtils.get_instruction_pointer(), GDBUtils.get_mapping("[stack]"), GDBUtils.get_encoded_stack(), True, True, False ))
 
 
     def _update_register_values(self):
@@ -347,13 +349,19 @@ class GDBUtils:
 
     @staticmethod
     def get_mapping(named):
-        x = list(filter(lambda e: named in e, GDBUtils.query_gdb("info proc mappings", "mappings").split("\n")))[0].split()
+        m = GDBUtils.query_gdb("info proc mappings", "mappings")
+        if "unable to open" in m:
+            return None
+        
+        x = list(filter(lambda e: named in e, m.split("\n")))[0].split()
         return {"begin":x[0], "end":x[1], "size":x[2], "name":named}
         
     @staticmethod
     def get_encoded_stack():
         mapping = GDBUtils.get_mapping("[stack]")
-        return GDBUtils.get_encoded_memory(mapping["begin"], "stack", mapping["end"], mapping["size"])
+        if mapping:
+            return GDBUtils.get_encoded_memory(mapping["begin"], "stack", mapping["end"], mapping["size"])
+        return None
 
     @staticmethod
     def get_arch():
