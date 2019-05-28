@@ -305,7 +305,7 @@ class GDBUtils:
         e_text = val.find(extract_end)
         if s_text == -1:
             print("could not determine %s setting to 'unknown'\n" % name)
-            return 'unknown'
+            return "0x0"
         
         result = val[s_text + len(extract_begin):e_text].strip()
         print("found %s '%s'\n" % (name, result))
