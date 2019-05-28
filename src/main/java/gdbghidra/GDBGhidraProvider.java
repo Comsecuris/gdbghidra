@@ -25,7 +25,9 @@ package gdbghidra;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.event.ActionEvent;
 
+import javax.swing.AbstractAction;
 import javax.swing.BoxLayout;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
@@ -56,7 +58,7 @@ public class GDBGhidraProvider extends ComponentProviderAdapter {
 	private Program currentProgram;
 	private GDBGhidraPlugin plugin;
 	private Thread gdbReceiverThread = null;
-	private DefaultTableModel model = new DefaultTableModel( new String[] {"register", "value"}, 0);
+	private DefaultTableModel model = null;
 	private JLabel status = new JLabel();
 	private Address previousAddress;
 	private Color previousColor;
@@ -64,6 +66,15 @@ public class GDBGhidraProvider extends ComponentProviderAdapter {
 	
 	public GDBGhidraProvider(GDBGhidraPlugin plugin, String owner) {
 		super(plugin.getTool(), owner, owner);
+		this.model = new DefaultTableModel( new String[] {"register", "value"}, 0) {
+			@Override
+			public boolean isCellEditable(int row, int column) {
+				if(column == 0) {
+					return false;
+				}
+				return true;
+			}
+		};
 		this.plugin = plugin;
 		buildTable();
 		
@@ -87,6 +98,18 @@ public class GDBGhidraProvider extends ComponentProviderAdapter {
 		status.setText("stopped");
 		status.setHorizontalAlignment(SwingConstants.LEFT);
 		statusPanel.add(status);
+		
+		var a = new AbstractAction() {
+			public void actionPerformed(ActionEvent a) {
+				RegisterChangeListener l = (RegisterChangeListener)a.getSource();
+				if(l.getColumn() != 1) {
+					return;
+				}
+				gdbReceiver.ChangeRegister((String)table.getValueAt(l.getRow(), 0), (String)l.getNewValue());
+			}
+		};
+		
+		new RegisterChangeListener(table, a);
 		
 		setVisible(true);
 	}

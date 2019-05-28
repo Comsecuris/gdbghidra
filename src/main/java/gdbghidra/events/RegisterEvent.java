@@ -25,6 +25,9 @@ package gdbghidra.events;
 
 import java.math.BigInteger;
 
+import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
+
 import ghidra.app.cmd.register.SetRegisterCmd;
 import ghidra.app.plugin.ProgramPlugin;
 import ghidra.framework.cmd.CompoundCmd;
@@ -86,6 +89,21 @@ public class RegisterEvent implements Event {
 				registerEvent.getValue());
 		cmd.add(regCmd);
 		plugin.getTool().execute(cmd, currentProgram);
+	}
+
+	public static JSONObject constructJSONResponse(String register, String newValue, String action) {
+		var response = new JSONObject();
+		var datamap = new JSONObject();
+		var data = new JSONArray();
+		
+		response.put("type", "REGISTER");
+		datamap.put("register", register);
+		datamap.put("value", newValue);
+		datamap.put("action", action);
+		data.add(datamap);
+		response.put("data", data);
+		
+		return response;
 	}
 
 }

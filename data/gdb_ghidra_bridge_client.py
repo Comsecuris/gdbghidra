@@ -95,12 +95,22 @@ class GDBBridge(Thread):
                         msg = json.loads(b"".join(line))
                         if msg["type"] == "BREAKPOINT":
                             self.handle_breakpoint(msg)
+                        elif msg['type'] == "REGISTER":
+                            self.handle_register(msg)
                         break                 
                     else:
                         line.append(c)
             
             except socket.timeout:
                 pass
+            
+    def handle_register(self, msg):
+        data = msg["data"][0]
+        if data["action"] == "change":
+            r = data["register"]
+            v = data["value"]
+            print("[GDBBridge] setting register '%s' to '%s'\n" % (r, v))
+            GDBUtils.set_register(r, v)
             
     def handle_breakpoint(self, msg):
         data = msg["data"][0]
@@ -353,5 +363,9 @@ class GDBUtils:
     def get_endian():
         return GDBUtils.query_gdb('show endian', 'endianess', "(currently ", " endian)")         
 
+
+    @staticmethod
+    def set_register(register, value):
+        gdb.execute("set $%s = %s" % (register, value))
 
 GhidraBridgeCommand()

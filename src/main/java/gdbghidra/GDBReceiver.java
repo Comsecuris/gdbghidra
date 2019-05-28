@@ -227,4 +227,13 @@ public class GDBReceiver implements Runnable{
 			sendResponse(response);	
 		}		
 	}
+
+	public void ChangeRegister(String register, String newValue) {
+		if(this.helloEvent == null) {
+			return;
+		}
+		
+		var response = RegisterEvent.constructJSONResponse(register, newValue, "change");
+		sendResponse(response);
+	}
 }
