@@ -28,6 +28,7 @@ import java.math.BigInteger;
 import ghidra.app.cmd.register.SetRegisterCmd;
 import ghidra.app.plugin.ProgramPlugin;
 import ghidra.framework.cmd.CompoundCmd;
+import ghidra.program.model.lang.RegisterManager;
 import ghidra.program.model.listing.Program;
 import ghidra.program.util.ProgramLocation;
 
@@ -43,7 +44,7 @@ public class RegisterEvent implements Event {
 	}
 	
 	public String getName() {
-		return this.name.toUpperCase();
+		return this.name;
 	}
 	
 	public String getHexString() {
@@ -70,12 +71,14 @@ public class RegisterEvent implements Event {
 	public static void handleEvent(RegisterEvent registerEvent, Program currentProgram, ProgramPlugin plugin, ProgramLocation currentLocation) {
 		var register = currentProgram.getRegister(registerEvent.getName());
 		if(register == null) {
-			System.err.println("[GDBGHIDRA] Error unknown register: "+registerEvent.getName()+"\n");
-			return;
+			register = currentProgram.getRegister(registerEvent.getName().toUpperCase());
+			if(register == null) {
+				System.err.println("[GDBGHIDRA] Error unknown register: "+registerEvent.getName()+"\n");
+				return;
+			}
 		}
 		var address = currentLocation.getAddress();
 		var cmd = new CompoundCmd("Set Register Values");
-		
 		var regCmd = new SetRegisterCmd(
 				register, 
 				address, 
