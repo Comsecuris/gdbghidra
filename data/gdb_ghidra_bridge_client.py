@@ -64,9 +64,11 @@ class GhidraBridge():
         try:
             if not self._connected:
                 self.connect()
+            if not message: return
                 
             self._socket.send(bytes(message + "\n", 'UTF-8'))
         except Exception as e:
+            print(e)
             self.disconnect()
             self.connect()
             
@@ -224,6 +226,8 @@ class GhidraMessages:
             }
             return GhidraMessages.encode(msg)    
         
+        return None
+        
     
     
             
@@ -293,7 +297,11 @@ class GhidraBridgeCommand(gdb.Command):
 class GDBUtils:
     @staticmethod
     def get_relocation():
-        return GDBUtils.query_gdb('info proc stat', 'relocation', 'Start of text: ', 'End of text: ')
+        r = GDBUtils.query_gdb('info proc stat', 'relocation', 'Start of text: ', 'End of text: ')
+        if r == "unknown":
+            return "0x0"
+        
+        return r
     
     @staticmethod
     def get_instruction_pointer():
@@ -316,11 +324,10 @@ class GDBUtils:
         s_text = val.find(extract_begin)
         e_text = val.find(extract_end)
         if s_text == -1:
-            print("could not determine %s setting to 'unknown'\n" % name)
-            return "0x0"
-        
+            print("[GDBGHIDRA] could not determine %s setting to 'unknown'\n" % name)
+            return 'unknown'
         result = val[s_text + len(extract_begin):e_text].strip()
-        print("found %s '%s'\n" % (name, result))
+        print("[GDBGHIDRA] found %s '%s'\n" % (name, result))
         return result
     
     @staticmethod
