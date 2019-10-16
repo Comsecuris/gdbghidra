@@ -29,12 +29,13 @@ import java.io.InputStream;
 import java.util.zip.GZIPInputStream;
 
 import ch.ethz.ssh2.crypto.Base64;
-import ghidra.app.util.MemoryBlockUtil;
-import ghidra.app.util.importer.MemoryConflictHandler;
+import ghidra.app.util.MemoryBlockUtils;
+import ghidra.app.util.importer.MessageLog;
 import ghidra.program.model.address.Address;
 import ghidra.program.model.address.AddressOverflowException;
 import ghidra.program.model.listing.Program;
 import ghidra.util.task.TaskMonitor;
+import ghidra.program.model.mem.MemoryBlock;
 
 public class MemoryEvent implements Event {
 	private String name;
@@ -45,7 +46,8 @@ public class MemoryEvent implements Event {
 	private boolean executePermission;
 	private long size;
 
-	public MemoryEvent(String address, String name, String data, String size, boolean readPermission, boolean writePermission, boolean executePermission) {
+	public MemoryEvent(String address, String name, String data, String size, boolean readPermission,
+			boolean writePermission, boolean executePermission) {
 		this.address = address;
 		this.name = name;
 		this.data = data;
@@ -54,11 +56,11 @@ public class MemoryEvent implements Event {
 		this.writePermission = writePermission;
 		this.executePermission = executePermission;
 	}
-	
+
 	public String getName() {
 		return this.name;
 	}
-	
+
 	@Override
 	public EventType getType() {
 		return EventType.MEMORY;
@@ -95,35 +97,26 @@ public class MemoryEvent implements Event {
 		return this.size;
 	}
 
-	public static void handleEvent(MemoryEvent memEvent, Program currentProgram)  {
-		MemoryConflictHandler memoryConflictHandler = MemoryConflictHandler.ALWAYS_OVERWRITE;
-		MemoryBlockUtil mbu = new MemoryBlockUtil( currentProgram, memoryConflictHandler );
+	public static void handleEvent(MemoryEvent memEvent, Program currentProgram) {
 		try {
 			var tx = currentProgram.startTransaction("adding memory");
-			
-			
-			var r = mbu.createInitializedBlock(
-					memEvent.getName(), 
-					memEvent.getAddress(currentProgram), 
-					memEvent.getData(), 
-					memEvent.getDataSize(), 
-					"", // comment?
-					"gdb", 
-					memEvent.getReadPermission(), 
-					memEvent.getWritePermission(), 
-					memEvent.getExecutePermission(), 
-					TaskMonitor.DUMMY);
-			if(r == null) {
-				var msg = mbu.getMessages();
-				if(msg.contains("Overwrote memory")) {
-					System.out.println("[GDBGhidra] "+ mbu.getMessages());
+			MessageLog log = new MessageLog();
+			MemoryBlock block = MemoryBlockUtils.createInitializedBlock(currentProgram, false, memEvent.getName(),
+					memEvent.getAddress(currentProgram), memEvent.getData(), memEvent.getDataSize(), "", // comment
+					"gdb", memEvent.getReadPermission(), memEvent.getWritePermission(), memEvent.getExecutePermission(),
+					log, TaskMonitor.DUMMY);
+
+			if (block == null) {
+				var msg = log.toString();
+				if (msg.contains("Overwrote memory")) {
+					System.out.println("[GDBGhidra] " + msg);
 				} else {
-					System.err.println("[GDBGhidra] could not write new memory block: "+ mbu.getMessages());
+					System.err.println("[GDBGhidra] could not write new memory block: " + msg);
 				}
 			} else {
-				System.out.println("[GDBGhidra]" + r.toString());
+				System.out.println("[GDBGhidra]" + block.toString());
 			}
-			
+
 			currentProgram.endTransaction(tx, true);
 		} catch (AddressOverflowException e) {
 			e.printStackTrace();
