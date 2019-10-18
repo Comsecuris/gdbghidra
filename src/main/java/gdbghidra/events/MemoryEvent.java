@@ -27,10 +27,9 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.zip.GZIPInputStream;
-
 import ch.ethz.ssh2.crypto.Base64;
-import ghidra.app.util.MemoryBlockUtil;
-import ghidra.app.util.importer.MemoryConflictHandler;
+import ghidra.app.util.MemoryBlockUtils;
+import ghidra.app.util.importer.MessageLog;
 import ghidra.program.model.address.Address;
 import ghidra.program.model.address.AddressOverflowException;
 import ghidra.program.model.listing.Program;
@@ -96,13 +95,14 @@ public class MemoryEvent implements Event {
 	}
 
 	public static void handleEvent(MemoryEvent memEvent, Program currentProgram)  {
-		MemoryConflictHandler memoryConflictHandler = MemoryConflictHandler.ALWAYS_OVERWRITE;
-		MemoryBlockUtil mbu = new MemoryBlockUtil( currentProgram, memoryConflictHandler );
 		try {
+			var log = new MessageLog();
 			var tx = currentProgram.startTransaction("adding memory");
 			
 			
-			var r = mbu.createInitializedBlock(
+			var r = MemoryBlockUtils.createInitializedBlock(
+					currentProgram,
+					false,
 					memEvent.getName(), 
 					memEvent.getAddress(currentProgram), 
 					memEvent.getData(), 
@@ -112,13 +112,14 @@ public class MemoryEvent implements Event {
 					memEvent.getReadPermission(), 
 					memEvent.getWritePermission(), 
 					memEvent.getExecutePermission(), 
+					log,
 					TaskMonitor.DUMMY);
 			if(r == null) {
-				var msg = mbu.getMessages();
+				var msg = log.toString();
 				if(msg.contains("Overwrote memory")) {
-					System.out.println("[GDBGhidra] "+ mbu.getMessages());
+					System.out.println("[GDBGhidra] "+ msg);
 				} else {
-					System.err.println("[GDBGhidra] could not write new memory block: "+ mbu.getMessages());
+					System.err.println("[GDBGhidra] could not write new memory block: "+ msg);
 				}
 			} else {
 				System.out.println("[GDBGhidra]" + r.toString());
